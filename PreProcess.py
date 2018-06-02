@@ -11,12 +11,14 @@ data=pd.read_csv(r'C:\Data\Otto\train.csv')
 
 def add_kfold_indexes(K, Data):
     '''
+    Adds randomly distributed Kfold indexes as a new column to the data frame. All folds will have the same size if possible.
     Inputs:
     K - Number of folds to split into
     Data - Pandas dataframe
     Outputs:
     Data - Pandas dataframe with new group indices added as column "Fold"
     '''
+    random.seed(a=42)
     indices = list(range(len(Data)))
     folds = [-1]*len(Data)
 

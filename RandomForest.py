@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.cross_validation import train_test_split
 from PreProcess import *
+from sklearn.ensemble import RandomForestClassifier
 
 PATH = r'C:\Data\Otto'
+LABEL = 'TARGET'
 
 
 
@@ -16,3 +15,10 @@ test=pd.read_csv(PATH + r'\test.csv')
 train = add_kfold_indexes(5,train)
 
 print(train)
+
+
+
+
+rd= RandomForestClassifier(n_estimators=100)
+
+#rd.fit(X_train,y_train)
