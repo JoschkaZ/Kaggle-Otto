@@ -3,9 +3,13 @@ import numpy as np
 import random
 from collections import Counter
 
-data=pd.read_csv(r'C:\Data\Otto\train.csv')
-#data=pd.read_csv(r'C:\Data\Otto\test.csv')
-
+'''
+INCLUDED FUNCTIONS
+add_kfold_indexes(K,Data)
+train_test_merge(train,test,label)
+cat_to_int(data, cat_to_int_cols)
+'''
+### INCLUDED FUNCTIONS ###
 
 
 
