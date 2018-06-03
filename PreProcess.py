@@ -37,17 +37,30 @@ def add_kfold_indexes(K, Data):
 
 def train_test_merge(train, test, label):
     test[label] = "None"
-    train["TrainTest"] = "Train"
-    test["TrainTest"] = "Test"
+    train["IsTrain"] = True
+    test["IsTrain"] = False
 
     train_test = pd.concat([train,test])
     return(train_test)
 
+def train_test_split(train_test):
+    train = train_test[train_test["IsTrain"] == True]
+    test = train_test[train_test["IsTrain"] == False]
+    return train, test
+
 def cat_to_int(data, cat_to_int_cols):
     for col in cat_to_int_cols:
         cats = list(data[col].unique())
-        print(cats)
-        print(cats.index('Class_4'))
-        print(data[col].apply(cats.index))
         data[col] = data[col].apply(cats.index)
     return data
+
+def kfold_split(data, k, label):
+    x_train_train = data[data["Fold"] != k]
+    y_train_train = data[data["Fold"] != k][LABEL]
+    x_train_test = data[data["Fold"] == k]
+    y_train_test = data[data["Fold"] == k][LABEL]
+
+    x_train_train.drop([LABEL, "FOLD"], axis = 1)
+    x_train_test.drop([LABEL, "FOLD"], axis = 1)
+
+    return x_train_train, y_train_train, x_train_test, x_train_train
