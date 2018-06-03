@@ -5,16 +5,17 @@ from sklearn.ensemble import RandomForestClassifier
 from IPython.display import display
 from sklearn.metrics import confusion_matrix,classification_report, accuracy_score
 
+from paths import PATH
+
 #SETTINGS
-PATH = r'C:\Data\Otto'
 LABEL = 'target'
 NOT_A_FEATURE = [LABEL, 'id']
 K = 5
 CAT_TO_INT_COLS = ['target'] #categorical columns to be transformed into integers
 
 #READ DATA
-train=pd.read_csv(PATH + r'\train.csv')
-test=pd.read_csv(PATH + r'\test.csv')
+train=pd.read_csv(PATH + r'train.csv')
+test=pd.read_csv(PATH + r'test.csv')
 
 #GET FEATURES
 features = list(train.columns.values)

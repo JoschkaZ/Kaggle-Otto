@@ -47,8 +47,8 @@ def cat_to_int(data, cat_to_int_cols):
     return data
 
 def kfold_split(data, k, label, features):
-    x_train_train = data[data["Fold"] != k][features].as_matrix()
-    y_train_train = data[data["Fold"] != k][label].as_matrix()
-    x_train_test = data[data["Fold"] == k][features].as_matrix()
-    y_train_test = data[data["Fold"] == k][label].as_matrix()
+    x_train_train = data[data["Fold"] != k][features].values
+    y_train_train = data[data["Fold"] != k][label].values
+    x_train_test = data[data["Fold"] == k][features].values
+    y_train_test = data[data["Fold"] == k][label].values
     return x_train_train, y_train_train, x_train_test, y_train_test
