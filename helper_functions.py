@@ -166,7 +166,7 @@ class Data:
 
     def to_onehot(self,data):
         dim = 9
-        print(str(data.shape)+ " "+ str(dim))
+        #print(str(data.shape)+ " "+ str(dim))
         targets = np.zeros(shape=(len(data),dim))
         for i, value in enumerate(data):
             targets[i,int(value)] = 1
