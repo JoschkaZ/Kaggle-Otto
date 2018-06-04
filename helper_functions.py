@@ -102,3 +102,78 @@ def kfold_split(data, k, labels, features):
     x_train_test = data[data["Fold"] == k][features].values
     y_train_test = data[data["Fold"] == k][labels].values
     return x_train_train, y_train_train, x_train_test, y_train_test
+
+class Data:
+    def __init__(self, labels : list, cat_to_int_columns, fold_count = 5, no_feature_columns = list()):
+        self.train=pd.read_csv(PATH + r'train.csv')
+        self.test=pd.read_csv(PATH + r'test.csv')
+
+        #GET FEATURES
+        self.features = list(self.train.columns.values)
+        self.features = [x for x in self.features if x not in no_feature_columns]
+        self.fold_count = fold_count
+        self.labels = labels
+        self.cat_to_int_columns = cat_to_int_columns
+        self.x_train  = self.train[self.features]
+        self.y_train = self.train[self.labels]
+        self.x_test = self.test[self.features]
+
+
+        for col in cat_to_int_columns:
+            self.cat_to_int(col)
+        self.add_kfold_indexes(fold_count)
+
+    def cat_to_int(self, col):
+        index = list(self.train[col].unique()).index
+        to_int = lambda data, c: data[c].apply(index)
+        if col in self.labels:
+            self.train[col] = to_int(self.train, col)
+        else:
+            self.train[col], self.test[col] = to_int(self.train, col), to_int(self.test, col)
+
+    def add_kfold_indexes(self, count, shuffle = True):
+        repeats = self.train.shape[0] // count +1
+        offset = count-(self.train.shape[0] % count)
+        folding = np.tile(np.arange(count),repeats)
+        if offset != count:
+            folding = folding[:-offset]
+        if shuffle:
+            np.random.shuffle(folding)
+        self.train["Fold"] = folding
+
+    def fold_split(self, k):
+
+        x_train_train = self.train[self.train["Fold"] != k][self.features].values
+        y_train_train = self.train[self.train["Fold"] != k][self.labels].values
+        x_train_test = self.train[self.train["Fold"] == k][self.features].values
+        y_train_test = self.train[self.train["Fold"] == k][self.labels].values
+        return x_train_train, y_train_train, x_train_test, y_train_test
+
+    def max_index(self, a):
+        temp = 0
+        temp_idx = 0
+        for i,x in enumerate(a):
+            if x > temp:
+                temp = x
+                temp_idx = i
+        return temp_idx
+
+    def inverse_onehot(self, data):
+        result = []
+        for i, line in enumerate(data):
+            result.append(int(self.max_index(line)))
+        return np.array(result, dtype=int)
+
+    def to_onehot(self,data):
+        dim = 9
+        print(str(data.shape)+ " "+ str(dim))
+        targets = np.zeros(shape=(len(data),dim))
+        for i, value in enumerate(data):
+            targets[i,int(value)] = 1
+        return targets
+
+    def col_to_onehot(self, col, in_place=False):
+        if in_place:
+            self.train[col] = self.to_onehot(self.train[col])
+            return self.train[col]
+        return self.to_onehot(self.train[col])
