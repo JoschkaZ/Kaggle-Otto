@@ -100,9 +100,9 @@ def train_test_split(train_test):
 
 
 
-def kfold_split(data, k, label, features):
+def kfold_split(data, k, labels, features):
     x_train_train = data[data["Fold"] != k][features].values
-    y_train_train = data[data["Fold"] != k][label].values
+    y_train_train = data[data["Fold"] != k][labels].values
     x_train_test = data[data["Fold"] == k][features].values
-    y_train_test = data[data["Fold"] == k][label].values
+    y_train_test = data[data["Fold"] == k][labels].values
     return x_train_train, y_train_train, x_train_test, y_train_test

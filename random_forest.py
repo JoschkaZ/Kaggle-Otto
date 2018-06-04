@@ -7,12 +7,9 @@ from sklearn.metrics import confusion_matrix,classification_report, accuracy_sco
 #DATA SETTINGS
 label = 'target'
 no_feature_columns = [label, 'id']
-cat_to_int_columns = []
-cat_to_onehot_columns = ['target']
+cat_to_int_columns = ['target']
+cat_to_onehot_columns = []
 K = 5
-
-#CLASSIFIER SETTINGS
-rd= RandomForestClassifier(n_estimators=5)
 
 train, test, features, labels = get_data(label = label,
                                 no_feature_columns = no_feature_columns,
@@ -20,15 +17,12 @@ train, test, features, labels = get_data(label = label,
                                 cat_to_onehot_columns = cat_to_onehot_columns,
                                 K = K)
 
+#CLASSIFIER SETTINGS
+rd= RandomForestClassifier(n_estimators=5)
 
-#LOOP OVER FOLDS
-print(labels)
-print(features)
-'''
 for k in range(K):
     print('Using Fold: ', k)
     x_train_train, y_train_train, x_train_test, y_train_test = kfold_split(train, k, label, features)
     rd.fit(x_train_train, y_train_train)
     pred = rd.predict(x_train_test)
     print(accuracy_score(pred, y_train_test))
-'''
