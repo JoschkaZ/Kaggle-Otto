@@ -11,7 +11,9 @@ train_test_merge(train,test,label)
 cat_to_int(data, cat_to_int_cols)
 '''
 
-def get_data(label, no_feature_columns, cat_to_int_columns, K):
+def get_data(label, no_feature_columns, cat_to_int_columns,
+            cat_to_onehot_columns, K):
+
     #READ DATA
     train=pd.read_csv(PATH + r'train.csv')
     test=pd.read_csv(PATH + r'test.csv')
@@ -21,10 +23,47 @@ def get_data(label, no_feature_columns, cat_to_int_columns, K):
     features = [x for x in features if x not in no_feature_columns]
 
     #DATA TRANSFORMATIONS
-    train = cat_to_int(train, cat_to_int_columns)
+    train, test = cat_to_int(train, test, label, cat_to_int_columns)
+    train, test, features, labels = cat_to_onehot(train, test, features, label, cat_to_onehot_columns)
+
+
+
     train = add_kfold_indexes(train, K)
 
-    return train, test, features
+
+    return train, test, features, labels
+
+def cat_to_int(train, test, label, cat_to_int_cols):
+    for col in cat_to_int_cols:
+        if col == label:
+            cats = list(train[col].unique())
+            train[col] = train[col].apply(cats.index)
+        else:
+            train_test = train_test_merge(train,test,label)
+            cats = list(train_test[col].unique())
+            train_test[col] = train_test[col].apply(cats.index)
+            train, test = train_test_split(train_test)
+    return train, test
+
+def cat_to_onehot(train, test, features, label, cat_to_onehot_columns):
+    if len(cat_to_onehot_columns) > 0:
+        print(cat_to_onehot_columns)
+        for col in cat_to_onehot_columns:
+            if col == label:
+                f1 = list(train.columns.values)
+                train = pd.get_dummies(train, columns = [col])
+                labels  = list(set(list(train.columns.values)) - set(f1))
+            else:
+                f1 = list(train.columns.values)
+                train_test = train_test_merge(train,test,label)
+                train_test = pd.get_dummies(train_test, columns = [col])
+                train, test = train_test_split(train_test)
+                labels = [label]
+                features.extend(list(set(list(train.columns.values)) - set(f1)))
+                features.remove(col)
+                print("F: ", features)
+        return train, test, features, labels
+    else: return train, test, features, [label]
 
 
 def add_kfold_indexes(Data, K):
@@ -57,11 +96,9 @@ def train_test_split(train_test):
     test.drop(["IsTrain"], axis=1)
     return train, test
 
-def cat_to_int(data, cat_to_int_cols):
-    for col in cat_to_int_cols:
-        cats = list(data[col].unique())
-        data[col] = data[col].apply(cats.index)
-    return data
+
+
+
 
 def kfold_split(data, k, label, features):
     x_train_train = data[data["Fold"] != k][features].values
