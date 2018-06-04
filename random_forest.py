@@ -23,6 +23,8 @@ rd= RandomForestClassifier(n_estimators=5)
 for k in range(K):
     print('Using Fold: ', k)
     x_train_train, y_train_train, x_train_test, y_train_test = kfold_split(train, k, label, features)
+
     rd.fit(x_train_train, y_train_train)
+
     pred = rd.predict(x_train_test)
     print(accuracy_score(pred, y_train_test))
