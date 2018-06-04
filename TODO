@@ -1,0 +1,13 @@
+- Learning how to run code in the cloud
+  test neural_network.py execution in the cloud
+  test random_forest.py execution in the cloud
+  
+
+- Creating general feature transformation routines.
+  Example: features_to_be_loged  = [feature_a, feature_b]
+  -> add log_feature_a & log_feature_b to dataframe
+  
+  
+- Hyper parameter optimisation routines
+  For every model: define a space of parameter settings
+  Develop a search algorithm to find ideal settings
