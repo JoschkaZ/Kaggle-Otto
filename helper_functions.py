@@ -6,32 +6,48 @@ from paths import PATH
 
 '''
 INCLUDED FUNCTIONS
-add_kfold_indexes(K,Data)
+
+get_data(label, no_feature_columns, cat_to_int_columns, cat_to_onehot_columns, K)
+
 train_test_merge(train,test,label)
-cat_to_int(data, cat_to_int_cols)
+train_test_split(train_test)
+
+cat_to_int(train, test, label, cat_to_int_cols)
+cat_to_onehot(train, test, features, label, cat_to_onehot_columns)
+
+add_kfold_indexes(Data, K)
+kfold_split(data, k, labels, features)
+
 '''
 
 def get_data(label, no_feature_columns, cat_to_int_columns,
             cat_to_onehot_columns, K):
-
     #READ DATA
     train=pd.read_csv(PATH + r'train.csv')
     test=pd.read_csv(PATH + r'test.csv')
-
     #GET FEATURES
     features = list(train.columns.values)
     features = [x for x in features if x not in no_feature_columns]
-
     #DATA TRANSFORMATIONS
     train, test = cat_to_int(train, test, label, cat_to_int_columns)
     train, test, features, labels = cat_to_onehot(train, test, features, label, cat_to_onehot_columns)
-
-
-
+    #KFold Indexes
     train = add_kfold_indexes(train, K)
-
-
     return train, test, features, labels
+
+def train_test_merge(train, test, label):
+    test[label] = "None"
+    train["IsTrain"] = True
+    test["IsTrain"] = False
+    train_test = pd.concat([train,test])
+    return(train_test)
+
+def train_test_split(train_test):
+    train = train_test[train_test["IsTrain"] == True]
+    test = train_test[train_test["IsTrain"] == False]
+    train.drop(["IsTrain"], axis=1)
+    test.drop(["IsTrain"], axis=1)
+    return train, test
 
 def cat_to_int(train, test, label, cat_to_int_cols):
     for col in cat_to_int_cols:
@@ -65,7 +81,6 @@ def cat_to_onehot(train, test, features, label, cat_to_onehot_columns):
         return train, test, features, labels
     else: return train, test, features, [label]
 
-
 def add_kfold_indexes(Data, K):
     random.seed(a=42)
     indices = list(range(len(Data)))
@@ -76,29 +91,10 @@ def add_kfold_indexes(Data, K):
         index_of_index = random.randint(0, len(indices)-1)
         folds[indices[index_of_index]] = k
         del indices[index_of_index]
-    #print(Counter(folds))
     pd.options.mode.chained_assignment = None
     Data["Fold"] = folds
     pd.options.mode.chained_assignment = 'warn'
     return Data
-
-def train_test_merge(train, test, label):
-    test[label] = "None"
-    train["IsTrain"] = True
-    test["IsTrain"] = False
-    train_test = pd.concat([train,test])
-    return(train_test)
-
-def train_test_split(train_test):
-    train = train_test[train_test["IsTrain"] == True]
-    test = train_test[train_test["IsTrain"] == False]
-    train.drop(["IsTrain"], axis=1)
-    test.drop(["IsTrain"], axis=1)
-    return train, test
-
-
-
-
 
 def kfold_split(data, k, labels, features):
     x_train_train = data[data["Fold"] != k][features].values
