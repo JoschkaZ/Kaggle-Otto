@@ -1,37 +1,27 @@
-import numpy as np
 import pandas as pd
-from PreProcess import *
+from helper_functions import *
 from sklearn.ensemble import RandomForestClassifier
 from IPython.display import display
 from sklearn.metrics import confusion_matrix,classification_report, accuracy_score
 
-from paths import PATH
-
-#SETTINGS
-LABEL = 'target'
-NOT_A_FEATURE = [LABEL, 'id']
+#DATA SETTINGS
+label = 'target'
+no_feature_columns = [label, 'id']
+cat_to_int_columns = ['target']
 K = 5
-CAT_TO_INT_COLS = ['target'] #categorical columns to be transformed into integers
-
-#READ DATA
-train=pd.read_csv(PATH + r'train.csv')
-test=pd.read_csv(PATH + r'test.csv')
-
-#GET FEATURES
-features = list(train.columns.values)
-features = [x for x in features if x not in NOT_A_FEATURE]
-
-#DATA TRANSFORMATIONS
-train = cat_to_int(train, CAT_TO_INT_COLS)
-train = add_kfold_indexes(train, K)
 
 #CLASSIFIER SETTINGS
-rd= RandomForestClassifier(n_estimators=100)
+rd= RandomForestClassifier(n_estimators=5)
+
+train, test, features = get_data(label = label,
+                                no_feature_columns = no_feature_columns,
+                                cat_to_int_columns = cat_to_int_columns,
+                                K = K)
 
 #LOOP OVER FOLDS
 for k in range(K):
     print('Using Fold: ', k)
-    x_train_train, y_train_train, x_train_test, y_train_test = kfold_split(train, k, LABEL, features)
+    x_train_train, y_train_train, x_train_test, y_train_test = kfold_split(train, k, label, features)
     rd.fit(x_train_train, y_train_train)
     pred = rd.predict(x_train_test)
     print(accuracy_score(pred, y_train_test))

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 from collections import Counter
+from paths import PATH
 
 '''
 INCLUDED FUNCTIONS
@@ -9,6 +10,22 @@ add_kfold_indexes(K,Data)
 train_test_merge(train,test,label)
 cat_to_int(data, cat_to_int_cols)
 '''
+
+def get_data(label, no_feature_columns, cat_to_int_columns, K):
+    #READ DATA
+    train=pd.read_csv(PATH + r'train.csv')
+    test=pd.read_csv(PATH + r'test.csv')
+
+    #GET FEATURES
+    features = list(train.columns.values)
+    features = [x for x in features if x not in no_feature_columns]
+
+    #DATA TRANSFORMATIONS
+    train = cat_to_int(train, cat_to_int_columns)
+    train = add_kfold_indexes(train, K)
+
+    return train, test, features
+
 
 def add_kfold_indexes(Data, K):
     random.seed(a=42)
