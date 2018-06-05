@@ -12,15 +12,8 @@ cat_to_int_columns = []
 cat_to_onehot_columns = ['target']
 K = 5
 
-train, test, features, labels = get_data(label = label,
-                                no_feature_columns = no_feature_columns,
-                                cat_to_int_columns = cat_to_int_columns,
-                                cat_to_onehot_columns = cat_to_onehot_columns,
-                                K = K)
-
 data = Data([label], [label], K, no_feature_columns)
 data.y_train = data.to_onehot(data.y_train[label])
-#data.col_to_onehot(label, in_place= True)
 #CLASSIFIER SETTINGS
 epochs = 10
 batch_size = 64
@@ -37,9 +30,7 @@ model = build_simple_model(data.get_feature_shape(), data.get_label_shape())
 
 for k in range(K):
     print('Using Fold: ', k)
-    x_train_train, y_train_train, x_train_test, y_train_test = data.fold_split(k) #kfold_split(train, k, labels, features)
-    #y_train_train = data.to_onehot(y_train_train[:,0]) #
-    #y_train_test = data.to_onehot(y_train_test[:,0])
+    x_train_train, y_train_train, x_train_test, y_train_test = data.fold_split(k)
     model.fit(x_train_train, y_train_train, epochs=epochs, batch_size=batch_size, verbose=0)
 
     loss_and_metrics = model.evaluate(x_train_test, y_train_test, batch_size=128, verbose=0)
