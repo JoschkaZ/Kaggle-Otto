@@ -102,3 +102,105 @@ def kfold_split(data, k, labels, features):
     x_train_test = data[data["Fold"] == k][features].values
     y_train_test = data[data["Fold"] == k][labels].values
     return x_train_train, y_train_train, x_train_test, y_train_test
+
+class Data:
+    def __init__(self, labels : list, cat_to_int_columns, fold_count = 5, no_feature_columns = list()):
+        self.train=pd.read_csv(PATH + r'train.csv')
+        self.test=pd.read_csv(PATH + r'test.csv')
+
+        #GET FEATURES
+        self.features = list(self.train.columns.values)
+        self.features = [x for x in self.features if x not in no_feature_columns]
+        self.fold_count = fold_count
+        self.labels = labels
+        self.cat_to_int_columns = cat_to_int_columns
+
+        for col in cat_to_int_columns:
+            self.cat_to_int(col)
+        self.add_fold_indexes(fold_count)
+
+        self.x_train  = self.train[self.features]
+        self.y_train = self.train[self.labels]
+        self.x_test = self.test[self.features]
+
+    def get_label_shape(self):
+        return self.y_train.shape[1]
+
+    def get_label_columns(self):
+        return self.y_train.columns
+
+    def get_feature_shape(self):
+        return self.x_train.shape[1]
+
+    def get_feature_columns(self):
+        return self.x_train.columns
+
+    def cat_to_int(self, col):
+        index = list(self.train[col].unique()).index
+        to_int = lambda data, c: data[c].apply(index)
+        if col in self.labels:
+            self.train[col] = to_int(self.train, col)
+        else:
+            self.train[col], self.test[col] = to_int(self.train, col), to_int(self.test, col)
+
+    def add_fold_indexes(self, count, shuffle = True):
+        repeats = self.train.shape[0] // count +1
+        offset = count-(self.train.shape[0] % count)
+        folding = np.tile(np.arange(count),repeats)
+        if offset != count:
+            folding = folding[:-offset]
+        if shuffle:
+            np.random.shuffle(folding)
+        self.folding = folding
+
+    def fold_split(self, k):
+        x_train_train = self.x_train[self.folding != k].values
+        y_train_train = self.y_train[self.folding != k].values
+        x_train_test = self.x_train[self.folding == k].values
+        y_train_test = self.y_train[self.folding == k].values
+        return x_train_train, y_train_train, x_train_test, y_train_test
+
+    def max_index(self, a):
+        temp = 0
+        temp_idx = 0
+        for i,x in enumerate(a):
+            if x > temp:
+                temp = x
+                temp_idx = i
+        return temp_idx
+
+    def inverse_onehot(self, data):
+        result = []
+        for i, line in enumerate(data):
+            result.append(int(self.max_index(line)))
+        return np.array(result, dtype=int)
+
+    def to_onehot(self,data, dim):
+
+        #print(str(data.shape)+ " "+ str(dim))
+        targets = np.zeros(shape=(len(data),dim))
+        for i, value in enumerate(data):
+            targets[i,int(value)] = 1
+        return pd.DataFrame(targets)
+
+    def get_train(self):
+        return self.x_train, self.y_train
+
+    #deprecated
+    def col_to_onehot(self, col):
+        if not col in self.x_train and not col in self.y_train:
+            print("Data.col_to_onehot: no such column")
+            return
+        if col in self.x_train:
+            dim = max(max(self.x_train[col]), max(self.x_test[col])) +1
+            onehot = self.to_onehot(self.x_train[col],dim)
+            self.x_train = pd.concat([self.x_train,onehot],axis =1)
+            onehot = self.to_onehot(self.x_test[col],dim)
+            self.x_test = pd.concat([self.x_test,onehot],axis=1)
+            self.x_train = self.x_train.drop(col,axis=1)
+            self.x_test = self.x_test.drop(col,axis=1)
+        if col in self.y_train:
+            dim = int(max(self.y_train[col])) +1
+            onehot = self.to_onehot(self.y_train[col],dim)
+            self.y_train = pd.concat([self.y_train,onehot], axis=1)
+            self.y_train = self.y_train.drop(col,axis=1)
