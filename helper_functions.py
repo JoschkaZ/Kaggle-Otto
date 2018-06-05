@@ -114,14 +114,20 @@ class Data:
         self.fold_count = fold_count
         self.labels = labels
         self.cat_to_int_columns = cat_to_int_columns
+
+        for col in cat_to_int_columns:
+            self.cat_to_int(col)
+        self.add_fold_indexes(fold_count)
+
         self.x_train  = self.train[self.features]
         self.y_train = self.train[self.labels]
         self.x_test = self.test[self.features]
 
+    def get_label_shape(self):
+        return self.y_train.shape[1]
 
-        for col in cat_to_int_columns:
-            self.cat_to_int(col)
-        self.add_kfold_indexes(fold_count)
+    def get_feature_shape(self):
+        return self.x_train.shape[1]
 
     def cat_to_int(self, col):
         index = list(self.train[col].unique()).index
@@ -131,7 +137,7 @@ class Data:
         else:
             self.train[col], self.test[col] = to_int(self.train, col), to_int(self.test, col)
 
-    def add_kfold_indexes(self, count, shuffle = True):
+    def add_fold_indexes(self, count, shuffle = True):
         repeats = self.train.shape[0] // count +1
         offset = count-(self.train.shape[0] % count)
         folding = np.tile(np.arange(count),repeats)
@@ -139,14 +145,13 @@ class Data:
             folding = folding[:-offset]
         if shuffle:
             np.random.shuffle(folding)
-        self.train["Fold"] = folding
+        self.folding = folding
 
     def fold_split(self, k):
-
-        x_train_train = self.train[self.train["Fold"] != k][self.features].values
-        y_train_train = self.train[self.train["Fold"] != k][self.labels].values
-        x_train_test = self.train[self.train["Fold"] == k][self.features].values
-        y_train_test = self.train[self.train["Fold"] == k][self.labels].values
+        x_train_train = self.x_train[self.folding != k].values
+        y_train_train = self.y_train[self.folding != k].values
+        x_train_test = self.x_train[self.folding == k].values
+        y_train_test = self.y_train[self.folding == k].values
         return x_train_train, y_train_train, x_train_test, y_train_test
 
     def max_index(self, a):
@@ -170,9 +175,14 @@ class Data:
         targets = np.zeros(shape=(len(data),dim))
         for i, value in enumerate(data):
             targets[i,int(value)] = 1
-        return targets
+        return pd.DataFrame(targets)
 
+    def get_train(self):
+        return self.x_train, self.y_train
+
+    #deprecated
     def col_to_onehot(self, col, in_place=False):
+        print("warning: deprecated col_to_onehot function")
         if in_place:
             self.train[col] = self.to_onehot(self.train[col])
             return self.train[col]

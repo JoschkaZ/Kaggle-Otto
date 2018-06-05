@@ -19,26 +19,27 @@ train, test, features, labels = get_data(label = label,
                                 K = K)
 
 data = Data([label], [label], K, no_feature_columns)
+data.y_train = data.to_onehot(data.y_train[label])
 #data.col_to_onehot(label, in_place= True)
 #CLASSIFIER SETTINGS
 epochs = 10
 batch_size = 64
 model_folder = "models"
 
-def build_simple_model():
+def build_simple_model(in_dim, out_dim):
     model = Sequential()
-    model.add(Dense(186, activation="relu", input_dim = len(data.features)))
-    model.add(Dense(len(labels), activation="softmax"))
+    model.add(Dense(186, activation="relu", input_dim = in_dim))
+    model.add(Dense(out_dim, activation="softmax"))
     model.compile(loss="categorical_crossentropy", optimizer="sgd", metrics=["accuracy"])
     return model
 
-model = build_simple_model()
+model = build_simple_model(data.get_feature_shape(), data.get_label_shape())
 
 for k in range(K):
     print('Using Fold: ', k)
     x_train_train, y_train_train, x_train_test, y_train_test = data.fold_split(k) #kfold_split(train, k, labels, features)
-    y_train_train = data.to_onehot(y_train_train[:,0]) #
-    y_train_test = data.to_onehot(y_train_test[:,0])
+    #y_train_train = data.to_onehot(y_train_train[:,0]) #
+    #y_train_test = data.to_onehot(y_train_test[:,0])
     model.fit(x_train_train, y_train_train, epochs=epochs, batch_size=batch_size, verbose=0)
 
     loss_and_metrics = model.evaluate(x_train_test, y_train_test, batch_size=128, verbose=0)
