@@ -19,19 +19,26 @@ epochs = 10
 batch_size = 64
 model_folder = "models"
 evaluation_file = os.path.join(model_folder,"evaluations.txt")
+loss = "categorical_crossentropy"
+optimizer = "sgd"
 
 #
-def build_simple_model(in_dim, out_dim):
+def build_simple_model(in_dim, out_dim, loss = loss, optimizer = optimizer):
     model = Sequential()
     model.add(Dense(186, activation="relu", input_dim = in_dim))
     model.add(Dense(out_dim, activation="softmax"))
-    model.compile(loss="categorical_crossentropy", optimizer="sgd", metrics=["accuracy"])
+    model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
     return model, "simple_model"
 
-def build_deep_model():
-    return None
+def build_deep_model(in_dim, out_dim, loss = loss, optimizer=optimizer):
+    model = Sequential()
+    model.add(Dense(186, activation="relu", input_dim=in_dim))
+    model.add(Dense(40, activation="relu"))
+    model.add(Dense(out_dim, activation="softmax"))
+    model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
+    return model, "three_layer_model"
 
-model, model_name = build_simple_model(data.get_feature_shape(), data.get_label_shape())
+model, model_name = build_deep_model(data.get_feature_shape(), data.get_label_shape())
 
 for k in range(K):
     print('Using Fold: ', k)
