@@ -40,4 +40,4 @@ for k in range(K):
 
     if not os.path.exists(model_folder):
         os.mkdir(model_folder)
-    model.save(os.path.join(model_folder, "simple_model_%s.h5" % (epochs)))
+    model.save(os.path.join(model_folder, "%s_%s.h5" % (model_name,epochs)))
