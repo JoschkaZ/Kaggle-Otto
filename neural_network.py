@@ -13,20 +13,21 @@ cat_to_onehot_columns = ['target']
 K = 5
 
 data = Data([label], [label], K, no_feature_columns)
-data.y_train = data.to_onehot(data.y_train[label])
+data.col_to_onehot(label)
 #CLASSIFIER SETTINGS
 epochs = 10
 batch_size = 64
 model_folder = "models"
 
+#
 def build_simple_model(in_dim, out_dim):
     model = Sequential()
     model.add(Dense(186, activation="relu", input_dim = in_dim))
     model.add(Dense(out_dim, activation="softmax"))
     model.compile(loss="categorical_crossentropy", optimizer="sgd", metrics=["accuracy"])
-    return model
+    return model, "simple_model"
 
-model = build_simple_model(data.get_feature_shape(), data.get_label_shape())
+model, model_name = build_simple_model(data.get_feature_shape(), data.get_label_shape())
 
 for k in range(K):
     print('Using Fold: ', k)

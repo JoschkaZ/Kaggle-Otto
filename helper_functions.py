@@ -126,8 +126,14 @@ class Data:
     def get_label_shape(self):
         return self.y_train.shape[1]
 
+    def get_label_columns(self):
+        return self.y_train.columns
+
     def get_feature_shape(self):
         return self.x_train.shape[1]
+
+    def get_feature_columns(self):
+        return self.x_train.columns
 
     def cat_to_int(self, col):
         index = list(self.train[col].unique()).index
@@ -169,8 +175,8 @@ class Data:
             result.append(int(self.max_index(line)))
         return np.array(result, dtype=int)
 
-    def to_onehot(self,data):
-        dim = 9
+    def to_onehot(self,data, dim):
+
         #print(str(data.shape)+ " "+ str(dim))
         targets = np.zeros(shape=(len(data),dim))
         for i, value in enumerate(data):
@@ -181,9 +187,20 @@ class Data:
         return self.x_train, self.y_train
 
     #deprecated
-    def col_to_onehot(self, col, in_place=False):
-        print("warning: deprecated col_to_onehot function")
-        if in_place:
-            self.train[col] = self.to_onehot(self.train[col])
-            return self.train[col]
-        return self.to_onehot(self.train[col])
+    def col_to_onehot(self, col):
+        if not col in self.x_train and not col in self.y_train:
+            print("Data.col_to_onehot: no such column")
+            return
+        if col in self.x_train:
+            dim = max(max(self.x_train[col]), max(self.x_test[col])) +1
+            onehot = self.to_onehot(self.x_train[col],dim)
+            self.x_train = pd.concat([self.x_train,onehot],axis =1)
+            onehot = self.to_onehot(self.x_test[col],dim)
+            self.x_test = pd.concat([self.x_test,onehot],axis=1)
+            self.x_train = self.x_train.drop(col,axis=1)
+            self.x_test = self.x_test.drop(col,axis=1)
+        if col in self.y_train:
+            dim = int(max(self.y_train[col])) +1
+            onehot = self.to_onehot(self.y_train[col],dim)
+            self.y_train = pd.concat([self.y_train,onehot], axis=1)
+            self.y_train = self.y_train.drop(col,axis=1)
