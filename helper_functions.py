@@ -104,7 +104,7 @@ def kfold_split(data, k, labels, features):
     return x_train_train, y_train_train, x_train_test, y_train_test
 
 class Data:
-    def __init__(self, labels : list, cat_to_int_columns, fold_count = 5, no_feature_columns = list()):
+    def __init__(self, labels : list, to_int_columns, to_onehot_columns = list(), fold_count = 5, no_feature_columns = list()):
         self.train=pd.read_csv(PATH + r'train.csv')
         self.test=pd.read_csv(PATH + r'test.csv')
 
@@ -113,15 +113,18 @@ class Data:
         self.features = [x for x in self.features if x not in no_feature_columns]
         self.fold_count = fold_count
         self.labels = labels
-        self.cat_to_int_columns = cat_to_int_columns
+        self.to_int_columns = to_int_columns
 
-        for col in cat_to_int_columns:
-            self.cat_to_int(col)
-        self.add_fold_indexes(fold_count)
+        self.cols_to_int(to_int_columns)
 
         self.x_train  = self.train[self.features]
         self.y_train = self.train[self.labels]
         self.x_test = self.test[self.features]
+
+        self.cols_to_onehot(to_onehot_columns)
+
+        self.add_fold_indexes(fold_count)
+
 
     def get_label_shape(self):
         return self.y_train.shape[1]
@@ -135,13 +138,17 @@ class Data:
     def get_feature_columns(self):
         return self.x_train.columns
 
-    def cat_to_int(self, col):
+    def col_to_int(self, col):
         index = list(self.train[col].unique()).index
         to_int = lambda data, c: data[c].apply(index)
         if col in self.labels:
             self.train[col] = to_int(self.train, col)
         else:
             self.train[col], self.test[col] = to_int(self.train, col), to_int(self.test, col)
+
+    def cols_to_int(self, cols : list):
+        for col in cols:
+            self.col_to_int(col)
 
     def add_fold_indexes(self, count, shuffle = True):
         repeats = self.train.shape[0] // count +1
@@ -176,17 +183,15 @@ class Data:
         return np.array(result, dtype=int)
 
     def to_onehot(self,data, dim):
-
-        #print(str(data.shape)+ " "+ str(dim))
         targets = np.zeros(shape=(len(data),dim))
         for i, value in enumerate(data):
             targets[i,int(value)] = 1
         return pd.DataFrame(targets)
 
+
     def get_train(self):
         return self.x_train, self.y_train
 
-    #deprecated
     def col_to_onehot(self, col):
         if not col in self.x_train and not col in self.y_train:
             print("Data.col_to_onehot: no such column")
@@ -204,3 +209,7 @@ class Data:
             onehot = self.to_onehot(self.y_train[col],dim)
             self.y_train = pd.concat([self.y_train,onehot], axis=1)
             self.y_train = self.y_train.drop(col,axis=1)
+
+    def cols_to_onehot(self,cols):
+        for col in cols:
+            self.col_to_onehot(col)

@@ -15,8 +15,8 @@ cat_to_int_columns = []
 cat_to_onehot_columns = ['target']
 K = 5
 
-data = Data([label], [label], K, no_feature_columns)
-data.col_to_onehot(label)
+data = Data([label], [label],to_onehot_columns=[label], fold_count = K, no_feature_columns = no_feature_columns)
+#data.col_to_onehot(label)
 
 model_folder = "models"
 evaluation_file = os.path.join(model_folder,"evaluations.txt")
