@@ -11,7 +11,7 @@ from neural_models import ModelParams
 #DATA SETTINGS
 label = 'target'
 no_feature_columns = [label, 'id']
-cat_to_int_columns = []
+cat_to_int_columns = ['target']
 cat_to_onehot_columns = ['target']
 K = 5
 
@@ -21,12 +21,17 @@ data = Data([label], [label],to_onehot_columns=[label], fold_count = K, no_featu
 model_folder = "models"
 evaluation_file = os.path.join(model_folder,"evaluations.txt")
 
-def get_score(params : ModelParams, save = False, log = False):
+def get_score(params : ModelParams, save = False, log = False, overfit = False):
     model, model_name = neural_models.get_model(params.name, data.get_feature_shape(), data.get_label_shape())
     model.compile(loss = params.loss, optimizer = params.optimizer, metrics=["accuracy"])
 
-    for k in range(data.fold_count):
-        print('Using Fold: ', k)
+    if overfit:
+        for k in range(data.fold_count):
+            print('Using Fold: ', k)
+            x_train_train, y_train_train, x_train_test, y_train_test = data.fold_split(k)
+            model.fit(x_train_train, y_train_train, epochs=params.epochs, batch_size=params.batch_size, verbose=params.verbose)
+    else:
+        k = 0
         x_train_train, y_train_train, x_train_test, y_train_test = data.fold_split(k)
         model.fit(x_train_train, y_train_train, epochs=params.epochs, batch_size=params.batch_size, verbose=params.verbose)
 
@@ -42,7 +47,8 @@ def get_score(params : ModelParams, save = False, log = False):
             with open(evaluation_file, 'w') as f:
                 f.write("Evaluations\n")
 
-        log_text = "%s ; [loss, acc] : %s ; epochs : %s ; batch size : %s ; folds : %s ; loss : %s ; optimizer : %s\n" %(params.name, str(loss_and_metrics), params.epochs, params.batch_size, data.fold_count, params.loss, params.optimizer)
+        log_text = "%s ; [loss, acc] : %s ; epochs : %s ; batch size : %s ; folds : %s ; loss : %s ; optimizer : %s\n"
+                        %(params.name, str(loss_and_metrics), params.epochs, params.batch_size, data.fold_count, params.loss, params.optimizer)
         with open(evaluation_file, 'a') as f:
             f.write(log_text)
         if save:
